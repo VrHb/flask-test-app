@@ -9,12 +9,11 @@ from dotenv import load_dotenv
 db = SQLAlchemy()
 
 
-def create_app():
+def create_app() -> Flask:
     load_dotenv()
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') 
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')    
-    # TODO add postgres url
 
     db.init_app(app)
 
@@ -23,5 +22,10 @@ def create_app():
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
+    from . import models
+    with app.app_context():
+        db.create_all()
+
 
     return app
