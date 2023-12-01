@@ -6,14 +6,10 @@
     {% with messages = get_flashed_messages() %}
     {% if messages %}
       <div class="mb-3 alert alert-warning" role="alert">
-          {{ messages[0] }}, <a href="{{ url_for('auth.login') }}">авторизуйтесь</a>.
+          {{ messages[0] }}.
       </div>
     {% endif %}
     {% endwith %}
-    <div class="mb-3">
-      <label for="name" class="form-label">Name</label>
-      <input type="text" class="form-control" name="name" id="name" aria-describedby="nameHelp">
-    </div>
     <div class="mb-3">
       <label for="email" class="form-label">Email address</label>
       <input type="email" class="form-control" name="email" id="email" aria-describedby="emailHelp">
@@ -22,7 +18,7 @@
       <label for="password" class="form-label">Password</label>
       <input type="password" class="form-control" name="password" id="password">
     </div>
-    <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    <button type="submit" class="btn btn-primary">Войти</button>
   </form>
 </div>
 {% endblock %}
