@@ -15,13 +15,14 @@ postgresql://<db-user>:<db-user-password>@<db-ip-or-domain>:<port_number>/<datab
 ```
 
 **Переменные ниже нужно просто експортировать в окружение:**
-3. Имя flask-приложения `FLASK_APP`:
+
+Имя flask-приложения `FLASK_APP`:
 
 ```sh 
 export FLASK_APP=<app_name>
 ```
 
-4. Настройка дебага `FLASK_DEBUG`:
+Настройка дебага `FLASK_DEBUG`:
 
 ```sh 
 export FLASK_DEBUG=1
