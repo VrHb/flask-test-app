@@ -54,3 +54,17 @@ from entry_app.models import User_
 ```python
 User_.query.all()
 ```
+
+
+## Тестирование `CRUD api`
+
+- Абзац про получение токена
+
+- Тестовый запрос
+
+```sh 
+curl -i http://127.0.0.1:5000/api/entry \
+  -H "Authorization: bearer <token>" \
+  -H "Content-Type: application/json" \
+   -d '{"text": "<some_text>"}'
+```

@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_jwt_extended import JWTManager
 
 from dotenv import load_dotenv
 
@@ -25,6 +26,10 @@ def create_app() -> Flask:
     app.register_blueprint(main_blueprint)
 
     login_manager = LoginManager()
+
+    # TODO in doc use JWT_SECRET-KEY is same as SECRET_KEY?
+    # TODO use JWT token expires env
+    jwt_manager = JWTManager(app)
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
