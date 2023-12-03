@@ -1,3 +1,6 @@
+import json
+
+from contextvars import Token
 from datetime import datetime
 
 from flask import Blueprint, render_template, redirect, \
@@ -12,12 +15,15 @@ from loguru import logger
 from . import db
 from .models import User_, Entry
 
+from entry_app import redis_db
+
+
 
 main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return redirect(url_for('auth.register')) 
+    return redirect(url_for('auth.login')) 
 
 
 @main.route('/profile')
@@ -25,7 +31,13 @@ def index():
 def profile() -> str:
     entries_from_db = Entry.query.filter_by(user_id=current_user.id).all()   
     entries = [entry.text for entry in entries_from_db]
-    return render_template('profile.html', name=current_user.name, entries=entries)
+    user_token = redis_db.get(current_user.email)
+    return render_template(
+        'profile.html',
+        name=current_user.name,
+        entries=entries,
+        token=user_token 
+    )
 
 
 @main.route('/api/entry', methods=["POST"])
@@ -80,8 +92,3 @@ def update_entry(entry_id: int) -> tuple[Response, int]:
     db.session.add(entry)
     db.session.commit()
     return jsonify('ok'), 200
-
-    
-
-    
-

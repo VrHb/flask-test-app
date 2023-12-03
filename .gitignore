@@ -6,6 +6,13 @@ __pycache__/
 # django media folder
 media/
 
+#backup files
+entries.json
+
+
+# celery beat db files
+*.db
+
 # C extensions
 *.so
 

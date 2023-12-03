@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="col-sx-1 text-center">
+  <div class="col-4 text-center">
     <div class="mb-3">
       <h2>привет, {{ name }}<h3>
     </div>
@@ -11,6 +11,10 @@
         <li class="list-group-item">{{ entry }}</li>
         {% endfor %}
       </ul>
+    </div>
+    <div class="alert alert-success" role="alert">
+      <p class="fw-semibold">Твой токен для доступа к api:</p>
+      <p class="text-break">{{ token }}</p>
     </div>
     <div class="mb-3">
       <a href="{{ url_for('auth.logout') }}" class="navbar-item">

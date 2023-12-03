@@ -5,11 +5,12 @@ from flask_jwt_extended import create_access_token
 
 from werkzeug.wrappers.response import Response
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from loguru import logger
 
 from .models import User_ 
 from . import db
+
+from entry_app import redis_db
 
 
 auth = Blueprint('auth', __name__)
@@ -58,7 +59,10 @@ def register_post() -> Response:
         expires_delta=False
         # TODO config expires later
     )
-    logger.info(access_token)
+    try:
+        redis_db.set(new_user.email, access_token)
+    except Exception as e:
+        logger.exception(e)
     return redirect(url_for('auth.login'))
 
 
