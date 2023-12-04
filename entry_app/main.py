@@ -1,8 +1,3 @@
-import json
-
-from contextvars import Token
-from datetime import datetime
-
 from flask import Blueprint, render_template, redirect, \
     url_for, jsonify, request
 from flask_login import login_required, current_user
@@ -10,10 +5,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from werkzeug.wrappers.response import Response
 
-from loguru import logger
-
-from . import db
-from .models import User_, Entry
+from .db_operations import create_entry, get_user_entries, \
+    delete_entry_from_db, update_entry_in_db
 
 from entry_app import redis_db
 
@@ -29,8 +22,8 @@ def index():
 @main.route('/profile')
 @login_required
 def profile() -> str:
-    entries_from_db = Entry.query.filter_by(user_id=current_user.id).all()   
-    entries = [entry.text for entry in entries_from_db]
+    serialized_entries = get_user_entries(current_user.email)   
+    entries = [entry.get('text') for entry in serialized_entries]
     user_token = redis_db.get(current_user.email)
     return render_template(
         'profile.html',
@@ -43,32 +36,17 @@ def profile() -> str:
 @main.route('/api/entry', methods=["POST"])
 @jwt_required()
 def add_entry() -> tuple[Response, int]:
+    entry_text = request.json.get("text")
     user_email = get_jwt_identity()
-    user = User_.query.filter_by(email=user_email).first_or_404()
-    entry_date = datetime.now()
-    entry_text = request.json.get('text')
-    new_entry = Entry(
-        user_id=user.id,
-        date=entry_date,
-        text=entry_text
-            )
-    db.session.add(new_entry)
-    db.session.commit()
-    # TODO serialize entry object
-    entry = {
-        'text': new_entry.text,
-        'creation_date': new_entry.date,
-        'user-id': new_entry.user_id
-    }
-    return jsonify(entry), 200
+    new_entry = create_entry(user_email, entry_text)
+    return jsonify(new_entry), 200
 
 
 @main.route('/api/entries', methods=['GET'])
 @jwt_required()
 def get_entries() -> tuple[Response, int]:
     user_email = get_jwt_identity()
-    db_user_entries = User_.query.filter_by(email=user_email).first_or_404().entries
-    entries = [{'id': entry.id, 'text': entry.text} for entry in db_user_entries]
+    entries = get_user_entries(user_email)
     return jsonify(entries), 200
 
 
@@ -76,29 +54,14 @@ def get_entries() -> tuple[Response, int]:
 @jwt_required()
 def delete_entry(entry_id: int) -> tuple[Response, int]:
     user_email = get_jwt_identity()
-    db_entry = (
-        Entry.query
-        .join(User_, Entry.user_id == User_.id)
-        .filter(User_.email == user_email, Entry.id == entry_id)
-        .first_or_404()
-    )
-    db.session.delete(db_entry)
-    db.session.commit()
-    return jsonify({'message': 'entry delete!'}), 200
+    deleted_entry_info = delete_entry_from_db(user_email, entry_id)
+    return jsonify(deleted_entry_info), 200
 
 
 @main.route('/api/entry/<int:entry_id>', methods=['PUT'])
 @jwt_required()
 def update_entry(entry_id: int) -> tuple[Response, int]:
     user_email = get_jwt_identity()
-    db_entry = (
-        Entry.query
-        .join(User_, Entry.user_id == User_.id)
-        .filter(User_.email == user_email, Entry.id == entry_id)
-        .first_or_404()
-    )
-    new_text = request.json.get('text') 
-    db_entry.text = new_text
-    db.session.add(db_entry)
-    db.session.commit()
-    return jsonify('ok'), 200
+    new_text = request.json.get('text')
+    updated_entry_info = update_entry_in_db(user_email, entry_id, new_text)
+    return jsonify(updated_entry_info), 200

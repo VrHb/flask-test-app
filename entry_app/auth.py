@@ -5,10 +5,14 @@ from flask_jwt_extended import create_access_token
 
 from werkzeug.wrappers.response import Response
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from loguru import logger
 
+
+from .validators import User
 from .models import User_ 
 from . import db
+from .db_operations import create_user, get_user
 
 from entry_app import redis_db
 
@@ -22,13 +26,12 @@ def login() -> str:
 
 @auth.route('/login', methods=['POST'])
 def login_post() -> Response:
-    email = request.form.get('email')
-    password = request.form.get('password', 'empty')
-    user = User_.query.filter_by(email=email).first()
-    if not user or not check_password_hash(user.password, password):
+    validated_user = User.model_validate(request.form.to_dict())
+    user_from_db = get_user(validated_user.email)
+    if not user_from_db or not check_password_hash(user_from_db.password, validated_user.password):
         flash('Проверьте правильно ли вы ввели пароль или логин')
         return redirect(url_for('auth.login'))
-    login_user(user, remember=True)
+    login_user(user_from_db, remember=True)
     return redirect(url_for('main.profile'))
 
 
@@ -39,25 +42,15 @@ def register() -> str:
 
 @auth.route('/register', methods=['POST'])
 def register_post() -> Response:
-    name = request.form.get('name')
-    email = request.form.get('email')
-    password = request.form.get('password', 'empty')
-    hashed_password = generate_password_hash(password)
-    user = User_.query.filter_by(email=email).first()
-    if user:
+    validated_user = User.model_validate(request.form.to_dict())
+    user_from_db = get_user(validated_user.email)
+    if user_from_db:
         flash("Вы уже зарегистрировались")
-        return redirect(url_for('auth.register'))
-    new_user = User_(
-    name=name,
-    email=email,
-    password=hashed_password
-    )
-    db.session.add(new_user)
-    db.session.commit()
+        return redirect(url_for('auth.login'))
+    new_user = create_user(validated_user)
     access_token = create_access_token(
         identity=new_user.email, 
         expires_delta=False
-        # TODO config expires later
     )
     try:
         redis_db.set(new_user.email, access_token)
