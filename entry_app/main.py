@@ -76,10 +76,12 @@ def get_entries() -> tuple[Response, int]:
 @jwt_required()
 def delete_entry(entry_id: int) -> tuple[Response, int]:
     user_email = get_jwt_identity()
-    # TODO optimize queries
-    db_user = User_.query.filter_by(email=user_email).first_or_404()
-    db_entry = Entry.query.filter_by(user_id=db_user.id, id=entry_id).first_or_404()
-    logger.info(db_entry)
+    db_entry = (
+        Entry.query
+        .join(User_, Entry.user_id == User_.id)
+        .filter(User_.email == user_email, Entry.id == entry_id)
+        .first_or_404()
+    )
     db.session.delete(db_entry)
     db.session.commit()
     return jsonify({'message': 'entry delete!'}), 200
@@ -89,9 +91,12 @@ def delete_entry(entry_id: int) -> tuple[Response, int]:
 @jwt_required()
 def update_entry(entry_id: int) -> tuple[Response, int]:
     user_email = get_jwt_identity()
-    # TODO optimize queries
-    db_user = User_.query.filter_by(email=user_email).first_or_404()
-    db_entry = Entry.query.filter_by(user_id=db_user.id, id=entry_id).first_or_404()
+    db_entry = (
+        Entry.query
+        .join(User_, Entry.user_id == User_.id)
+        .filter(User_.email == user_email, Entry.id == entry_id)
+        .first_or_404()
+    )
     new_text = request.json.get('text') 
     db_entry.text = new_text
     db.session.add(db_entry)
