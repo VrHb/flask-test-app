@@ -55,7 +55,7 @@ def register_post() -> Response:
     db.session.add(new_user)
     db.session.commit()
     access_token = create_access_token(
-        identity=new_user.id,
+        identity=new_user.email, 
         expires_delta=False
         # TODO config expires later
     )

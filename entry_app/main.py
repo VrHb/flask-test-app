@@ -23,7 +23,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/')
 def index():
-    return redirect(url_for('auth.login')) 
+    return redirect(url_for('auth.register')) 
 
 
 @main.route('/profile')
@@ -43,8 +43,8 @@ def profile() -> str:
 @main.route('/api/entry', methods=["POST"])
 @jwt_required()
 def add_entry() -> tuple[Response, int]:
-    user_data_from_token = get_jwt_identity()
-    user = User_.query.get_or_404(user_data_from_token)
+    user_email = get_jwt_identity()
+    user = User_.query.filter_by(email=user_email).first_or_404()
     entry_date = datetime.now()
     entry_text = request.json.get('text')
     new_entry = Entry(
@@ -66,18 +66,21 @@ def add_entry() -> tuple[Response, int]:
 @main.route('/api/entries', methods=['GET'])
 @jwt_required()
 def get_entries() -> tuple[Response, int]:
-    user_data_from_token = get_jwt_identity()
-    entries_from_db = Entry.query.filter_by(user_id=user_data_from_token).all()   
-    entries = [{'id': entry.id, 'text': entry.text} for entry in entries_from_db]
+    user_email = get_jwt_identity()
+    db_user_entries = User_.query.filter_by(email=user_email).first_or_404().entries
+    entries = [{'id': entry.id, 'text': entry.text} for entry in db_user_entries]
     return jsonify(entries), 200
 
 
 @main.route('/api/entry/<int:entry_id>', methods=['DELETE'])
 @jwt_required()
 def delete_entry(entry_id: int) -> tuple[Response, int]:
-    user_data_from_token = get_jwt_identity()
-    entry = Entry.query.filter_by(user_id=user_data_from_token, id=entry_id).first_or_404()
-    db.session.delete(entry)
+    user_email = get_jwt_identity()
+    # TODO optimize queries
+    db_user = User_.query.filter_by(email=user_email).first_or_404()
+    db_entry = Entry.query.filter_by(user_id=db_user.id, id=entry_id).first_or_404()
+    logger.info(db_entry)
+    db.session.delete(db_entry)
     db.session.commit()
     return jsonify({'message': 'entry delete!'}), 200
 
@@ -85,10 +88,12 @@ def delete_entry(entry_id: int) -> tuple[Response, int]:
 @main.route('/api/entry/<int:entry_id>', methods=['PUT'])
 @jwt_required()
 def update_entry(entry_id: int) -> tuple[Response, int]:
-    user_data_from_token = get_jwt_identity()
-    entry = Entry.query.filter_by(user_id=user_data_from_token, id=entry_id).first_or_404()
-    new_text = request.json.get('text')
-    entry.text = new_text
-    db.session.add(entry)
+    user_email = get_jwt_identity()
+    # TODO optimize queries
+    db_user = User_.query.filter_by(email=user_email).first_or_404()
+    db_entry = Entry.query.filter_by(user_id=db_user.id, id=entry_id).first_or_404()
+    new_text = request.json.get('text') 
+    db_entry.text = new_text
+    db.session.add(db_entry)
     db.session.commit()
     return jsonify('ok'), 200
