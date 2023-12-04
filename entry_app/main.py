@@ -43,12 +43,12 @@ def profile() -> str:
 @main.route('/api/entry', methods=["POST"])
 @jwt_required()
 def add_entry() -> tuple[Response, int]:
-    user_id = get_jwt_identity()
-    user = User_.query.get_or_404(user_id)
+    user_data_from_token = get_jwt_identity()
+    user = User_.query.get_or_404(user_data_from_token)
     entry_date = datetime.now()
     entry_text = request.json.get('text')
     new_entry = Entry(
-        user_id=user_id,
+        user_id=user.id,
         date=entry_date,
         text=entry_text
             )
@@ -66,8 +66,8 @@ def add_entry() -> tuple[Response, int]:
 @main.route('/api/entries', methods=['GET'])
 @jwt_required()
 def get_entries() -> tuple[Response, int]:
-    user_id = get_jwt_identity()
-    entries_from_db = Entry.query.filter_by(user_id=user_id).all()   
+    user_data_from_token = get_jwt_identity()
+    entries_from_db = Entry.query.filter_by(user_id=user_data_from_token).all()   
     entries = [{'id': entry.id, 'text': entry.text} for entry in entries_from_db]
     return jsonify(entries), 200
 
@@ -75,8 +75,8 @@ def get_entries() -> tuple[Response, int]:
 @main.route('/api/entry/<int:entry_id>', methods=['DELETE'])
 @jwt_required()
 def delete_entry(entry_id: int) -> tuple[Response, int]:
-    user_id = get_jwt_identity()
-    entry = Entry.query.filter_by(user_id=user_id, id=entry_id).first_or_404()
+    user_data_from_token = get_jwt_identity()
+    entry = Entry.query.filter_by(user_id=user_data_from_token, id=entry_id).first_or_404()
     db.session.delete(entry)
     db.session.commit()
     return jsonify({'message': 'entry delete!'}), 200
@@ -85,8 +85,8 @@ def delete_entry(entry_id: int) -> tuple[Response, int]:
 @main.route('/api/entry/<int:entry_id>', methods=['PUT'])
 @jwt_required()
 def update_entry(entry_id: int) -> tuple[Response, int]:
-    user_id = get_jwt_identity()
-    entry = Entry.query.filter_by(user_id=user_id, id=entry_id).first_or_404()
+    user_data_from_token = get_jwt_identity()
+    entry = Entry.query.filter_by(user_id=user_data_from_token, id=entry_id).first_or_404()
     new_text = request.json.get('text')
     entry.text = new_text
     db.session.add(entry)
