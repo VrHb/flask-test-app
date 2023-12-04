@@ -66,15 +66,14 @@ export FLASK_DEBUG=1
 
 **Для хранения записей и данных пользователей в проекте используется субд `postgresql`**
 
-**Для хранения токена пользователя используется `redis`**
-[Как установить](https://redis.io/docs/connect/clients/python/)
+**Для хранения токена пользователя используется `redis`**, [как установить](https://redis.io/docs/install/install-redis/)
 
 - Создайте бд `postgres`
 
 ```sql
 CREATE DATABASE <database_name>;
 CREATE USER <db_user> WITH ENCRYPTED PASSWORD <passwor_for_db>;
-GRANT ALL PRIVELEGES ON DATABASE <database_name> TO <db_user>;
+GRANT ALL PRIVILEGES ON DATABASE <database_name> TO <db_user>;
 ALTER DATABASE <database_name> OWNER TO <database_user>;
 ```
 
@@ -92,8 +91,7 @@ redis-cli ping
 
 **Чтобы использовать `celery`**
 
-- у вас должен быть установлен брокер задач `redis`
-[документация](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/redis.html#broker-redis)
+- у вас должен быть установлен брокер задач `redis`, [документация](https://docs.celeryq.dev/en/stable/getting-started/backends-and-brokers/redis.html#broker-redis)
 
 - Запущен `celery worker` 
 
