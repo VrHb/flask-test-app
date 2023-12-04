@@ -1,6 +1,26 @@
 # Flask test app
 
-## Переменные окружения:
+## Подготовка проекта
+
+**Проект разрабатывается на `python 3.11.5`**
+
+- Активируйте виртуальное окружение:
+
+```sh 
+python -m venv env
+```
+
+```sh 
+. ./env/bin/activate
+```
+
+- Установите библиотеки:
+
+```sh 
+pip install -r requirements.txt
+```
+
+### Переменные окружения:
 
 **Для запуска проекта необходимо создать `.env` файл со следующими переменными окружения:**
 
@@ -23,16 +43,17 @@ redis://localhost
 ```
 
 4. `CELERY_RESULT_BACKEND` - `uri` для хранения информации о задачах `celery`
+Тоже может быть `redis`
 
 5. `REDIS_PORT` и `REDIS_HOST` для соединения с бд `redis`
 [документация](https://redis.io/)
 
-**Переменные ниже нужно просто експортировать в окружение:**
+**Переменные ниже нужно экспортировать в окружение:**
 
 Имя flask-приложения `FLASK_APP`:
 
 ```sh 
-export FLASK_APP=<app_name>
+export FLASK_APP=entry_app
 ```
 
 Настройка дебага `FLASK_DEBUG`:
@@ -41,7 +62,7 @@ export FLASK_APP=<app_name>
 export FLASK_DEBUG=1
 ```
 
-## Настройка базы данных
+### Настройка базы данных
 
 **Для хранения записей и данных пользователей в проекте используется субд `postgresql`**
 
@@ -57,13 +78,15 @@ GRANT ALL PRIVELEGES ON DATABASE <database_name> TO <db_user>;
 ALTER DATABASE <database_name> OWNER TO <database_user>;
 ```
 
+> **Не забудьте проверить переменную `DATABASE_URI`, это путь к созданной бд**
+
 - Убедитесь что `redis` работает
 
 ```sh 
 redis-cli ping
 ```
 
-## Фоновые процессы с использованием `celery`
+### Фоновые процессы с использованием `celery`
 
 Сервис использует 'celery' для бэкапа заметок всех пользователей
 
@@ -78,19 +101,27 @@ redis-cli ping
 celery -A make_celery worker --loglevel INFO
 ```
 
-- Запущен `celery beat` для бекапа
+- Запущен `celery beat` для бэкапа
 
 ```sh 
 celery -A make_celery beat --loglevel INFO
 ```
 
-## Запуск сервиса
+- Бэкап будет доступен в виде `json` файла - `entries.json`
+
+## Запуск
 
 ```sh 
 flask run
 ```
 
-### Тестирование `CRUD`
+### Запуск unit-тестов
+
+```sh 
+pytest tests -v
+```
+
+### Тестирование `api` с помощью `curl`
 
 - Токен будет доступен после регистрации в сервисе
 
