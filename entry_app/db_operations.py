@@ -26,12 +26,9 @@ def create_user(user: User) -> User_:
     
 
 def create_entry(user_email: str, entry_text: str) -> dict: 
-    entry_date = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-    logger.info(entry_date)
     user = User_.query.filter_by(email=user_email).first_or_404()
     entry = Entry(
         user_id=user.id,
-        date=entry_date,
         text=entry_text
     )
     db.session.add(entry)

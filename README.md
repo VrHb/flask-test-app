@@ -75,6 +75,8 @@ CREATE DATABASE <database_name>;
 CREATE USER <db_user> WITH ENCRYPTED PASSWORD <passwor_for_db>;
 GRANT ALL PRIVILEGES ON DATABASE <database_name> TO <db_user>;
 ALTER DATABASE <database_name> OWNER TO <database_user>;
+ALTER DATABASE <database_name> timezone TO 'Europe/Moscow';
+
 ```
 
 > **Не забудьте проверить переменную `DATABASE_URI`, это путь к созданной бд**

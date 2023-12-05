@@ -1,3 +1,4 @@
+from sqlalchemy.sql import func
 from flask_login import UserMixin
 
 from . import db
@@ -25,7 +26,7 @@ class Entry(db.Model):
         'User_',
         backref=db.backref('entries', lazy=True)
     )
-    date = db.Column(db.Date, nullable=False)
+    date = db.Column(db.DateTime(), server_default=func.now())
     text = db.Column(db.String(255), nullable=False)
 
     def __str__(self) -> str:
