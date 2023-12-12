@@ -1,10 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, EmailStr
 
 
 class User(BaseModel):
     name: str | None = None
-    email: str
+    email: EmailStr
     password: str
 
 class EntrySerializer(BaseModel):
@@ -15,3 +15,6 @@ class EntrySerializer(BaseModel):
 
     class Config:
         from_attributes = True
+
+class EntryText(BaseModel):
+    text: str

@@ -4,14 +4,14 @@ from flask_login import login_user, logout_user, login_required
 from flask_jwt_extended import create_access_token
 
 from werkzeug.wrappers.response import Response
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import check_password_hash
 
 from loguru import logger
 
+from pydantic import ValidationError
+
 
 from .validators import User
-from .models import User_ 
-from . import db
 from .db_operations import create_user, get_user
 
 from entry_app import redis_db
@@ -26,7 +26,12 @@ def login() -> str:
 
 @auth.route('/login', methods=['POST'])
 def login_post() -> Response:
-    validated_user = User.model_validate(request.form.to_dict())
+    try:
+        validated_user = User.model_validate(request.form.to_dict())
+    except ValidationError as e:
+        logger.exception(e)
+        flash("Вы ввели некорректные данные")
+        return redirect(url_for('auth.register'))
     user_from_db = get_user(validated_user.email)
     if not user_from_db or not check_password_hash(user_from_db.password, validated_user.password):
         flash('Проверьте правильно ли вы ввели пароль или логин')
@@ -42,7 +47,12 @@ def register() -> str:
 
 @auth.route('/register', methods=['POST'])
 def register_post() -> Response:
-    validated_user = User.model_validate(request.form.to_dict())
+    try:
+        validated_user = User.model_validate(request.form.to_dict())
+    except ValidationError as e:
+        logger.exception(e)
+        flash("Вы ввели некорректные данные")
+        return redirect(url_for('auth.register'))
     user_from_db = get_user(validated_user.email)
     if user_from_db:
         flash("Вы уже зарегистрировались")

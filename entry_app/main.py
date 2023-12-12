@@ -5,10 +5,15 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from werkzeug.wrappers.response import Response
 
+from pydantic import ValidationError
+
+from loguru import logger
+
 from .db_operations import create_entry, get_user_entries, \
     delete_entry_from_db, update_entry_in_db
 
 from entry_app import redis_db
+from .validators import EntryText
 
 
 
@@ -36,9 +41,16 @@ def profile() -> str:
 @main.route('/api/entry', methods=["POST"])
 @jwt_required()
 def add_entry() -> tuple[Response, int]:
-    entry_text = request.json.get("text")
+    try:
+        entry_data = request.get_json()
+        validated_entry = EntryText.model_validate(entry_data)
+        validated_entry.model_dump_json()
+    except ValidationError as validation_error:
+        return jsonify(validation_error.errors()), 400
+    except Exception:
+        return jsonify({'mesage': 'Incorrect data format, use json!'}), 400
     user_email = get_jwt_identity()
-    new_entry = create_entry(user_email, entry_text)
+    new_entry = create_entry(user_email, validated_entry.text)
     return jsonify(new_entry), 200
 
 
