@@ -12,11 +12,11 @@ def test_new_user():
     user = User_(
         name='Alena',
         email='alena@mail.com',
-        password='',
+        password='some_pass',
     )
     assert user.name == 'Alena'
     assert user.email == 'alena@mail.com'
-    assert user.password == ''
+    assert user.password == 'some_pass'
 
 
 def test_new_entry():
